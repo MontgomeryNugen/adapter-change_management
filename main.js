@@ -161,37 +161,26 @@ healthcheck() {
      * get() takes a callback function.
      */
     //  this.connector.get(callback);
-  try {
-      return this.connector.get((returnData, returnError) => { 
-        if (returnError) {
-          return callback(null, returnError);
-        }
+  this.connector.get((data, error) => {
+            if (data && data.body) {
+                const records = JSON.parse(data.body).result;
+                const modifiedRecords = [];
 
-        const ticketList = [];
-
-        if(returnData.body) {
-          const jsonBody = JSON.parse(returnData.body);
-          const results = jsonBody.result;
-          results.forEach(result => {
-            let ticket = {};
-            ticket.change_ticket_number = result.number;
-            ticket.active = result.active;
-            ticket.priority = result.priority;
-            ticket.description = result.description;
-            ticket.work_start = result.work_start;
-            ticket.work_end = result.work_end;
-            ticket.change_ticket_key = result.sys_id;
-            ticketList.push(ticket);
-          });
-        }
-
-        return callback(ticketList, null);
-      });
-    } catch(error) {
-      log.error('ServiceNow: Failed to get record.');
-      return callback(null, error);
+                for (let record of records)
+                    modifiedRecords.push({
+                        change_ticket_number: record.number,
+                        active: record.active,
+                        priority: record.priority,
+                        description: record.description,
+                        work_start: record.work_start,
+                        work_end: record.work_end,
+                        change_ticket_key: record.sys_id
+                    });
+                return callback(modifiedRecords, error);
+            }
+            callback(data, error);
+        });
     }
-  }
 
   /**
    * @memberof ServiceNowAdapter
@@ -210,32 +199,24 @@ healthcheck() {
      * post() takes a callback function.
      */
     //  this.connector.post(callback)
-  try {
-      return this.connector.post((returnData, returnError) => { 
-        if (returnError) {
-          return callback(null, returnError);
-        }
+  this.connector.post((data, error) => {
 
-        const ticket = {};
-        if(returnData.body) {
-          const jsonBody = JSON.parse(returnData.body);
-          const result = jsonBody.result;
-          ticket.change_ticket_number = result.number;
-          ticket.active = result.active;
-          ticket.priority = result.priority;
-          ticket.description = result.description;
-          ticket.work_start = result.work_start;
-          ticket.work_end = result.work_end;
-          ticket.change_ticket_key = result.sys_id;
-        }
+            if (data && data.body) {
+                const record = JSON.parse(data.body).result;
 
-        return callback(ticket, null);
-      });
-    } catch(error) {
-      log.error('ServiceNow: Failed to post record.');
-      return callback(null, error);
-    } 
-  }
+                return callback({
+                    change_ticket_number: record.number,
+                    change_ticket_key: record.sys_id,
+                    active: record.active,
+                    priority: record.priority,
+                    description: record.description,
+                    work_start: record.work_start,
+                    work_end: record.work_end
+                }, error);
+            }
+            callback(data, error);
+        });
+    }
 }
 
 module.exports = ServiceNowAdapter;
