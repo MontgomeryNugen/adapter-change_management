@@ -124,24 +124,24 @@ processRequestResults(error, response, body, callback) {
    let callbackData = null;
    let callbackError = null;
    if (error) {
-       console.log('Error.');
+       console.error('Error.');
        callbackError = error;
    }
    else if (!validResponseRegex.test(response.statusCode))
    {
-       console.log('Reponse code error');
+       console.error('Reponse code error');
        callbackError = response;
    }
    else if (this.isHibernating(response))
    {
-       console.log(callbackErrors);
+       console.error(callbackErrors);
        callbackErrors= 'Instance is hibernating';      
    }
    else 
    {
        callbackData = response;
    }
-   return callback (callbackData, callbackError)
+   return callback (callbackData, callbackError);
 }
 
 
